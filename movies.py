@@ -133,8 +133,16 @@ class Movie(object):
     def title(self):
         return self.data['Title']
 
+    @property
+    def imdb_url(self):
+        return IMDB_URL.format(self.data['imdbID'])
+
+    @property
+    def poster_url(self):
+        url = self.data.get('Poster')
+        return '' if url == 'N/A' else url
+
     def __str__(self):
-        imdb_url = IMDB_URL.format(self.data['imdbID'])
         txt = [
             u"{0[Title]} ({0[Year]})",
             u"Plot: {0[Plot]}",
@@ -145,9 +153,24 @@ class Movie(object):
         txt = u"\n".join(txt)
         txt = txt.format(
             self.data,
-            imdb_url=imdb_url,
+            imdb_url=self.imdb_url,
         )
         return txt.encode('utf8')
+
+    def __html__(self):
+        html = u'''
+            <h2>{0[Title]} ({0[Year]})</h2>
+            <p>{0[Plot]}</p>
+            <ul>
+                <li><strong>Genre</strong>: {0[Genre]}</li>
+                <li><strong>IMDb rating</strong>: {0[imdbRating]}/10</li>
+                <li><a href="{imdb_url}">View this movie on IMDb</a>.</li>
+            </ul>
+        '''.format(
+            self.data,
+            imdb_url=self.imdb_url,
+        )
+        return html
 
 class MoviePicker(object):
     '''

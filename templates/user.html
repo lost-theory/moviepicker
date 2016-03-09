@@ -1,0 +1,7 @@
+{% extends '_base.html' %}
+{% block content %}
+    <h1>Your movies</h1>
+    {% for movie in movies %}
+        {{ movie_details(movie) }}
+    {% endfor %}
+{% endblock %}
