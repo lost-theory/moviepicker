@@ -1,0 +1,43 @@
+{% from '_macros.html' import movie_details %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MoviePicker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="https://bootswatch.com/slate/bootstrap.css" media="screen">
+    <link rel="stylesheet" href="https://bootswatch.com/assets/css/custom.min.css">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://bootswatch.com/bower_components/html5shiv/dist/html5shiv.js"></script>
+      <script src="https://bootswatch.com/bower_components/respond/dest/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+        .movie-container { padding: 20px 0px 20px 0px; }
+        .movie-container span.poster { display: inline-block; }
+        .movie-container span.poster img { width: 65%; }
+    </style>
+</head>
+<body>
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="{{url_for('index')}}" class="navbar-brand">MoviePicker</a>
+            </div>
+            <div class="navbar-collapse collapse" id="navbar-main">
+              <ul class="nav navbar-nav">
+                <li><a href="{{url_for('random_movie')}}">Random movie</a></li>
+                <li><a href="{{url_for('show_user')}}">Your movies</a></li>
+              </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="https://bootswatch.com/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="https://bootswatch.com/assets/js/custom.js"></script>
+</body>
+</html>

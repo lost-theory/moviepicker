@@ -1,0 +1,12 @@
+{% macro movie_details(movie) %}
+<div class="row movie-container">
+    <div class="col-md-8">
+        {{movie}}
+    </div>
+    <div class="col-md-4">
+    {% if movie.poster_url %}
+        <span class="poster"><img src="{{url_for('rehost_image', url=movie.poster_url)}}" /></span>
+    {% endif %}
+    </div>
+</div>
+{% endmacro %}
