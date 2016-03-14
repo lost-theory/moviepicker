@@ -1,7 +1,17 @@
 import os
 import sqlite3
 
+from passlib.hash import pbkdf2_sha512
+
 SCHEMA = '''
+    DROP TABLE if exists users;
+    CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email VARCHAR(512) NOT NULL,
+        password_hash VARCHAR(512) NOT NULL
+    );
+    CREATE UNIQUE INDEX user_email ON users(email);
+
     DROP TABLE if exists categories;
     CREATE TABLE categories (
         category VARCHAR(512) NOT NULL PRIMARY KEY
@@ -36,6 +46,36 @@ class DB(object):
             curs.execute("INSERT INTO categories VALUES (?)", [c])
         self.conn.commit()
 
+    #####
+
+    def create_user(self, email, password, confirm):
+        if "@" not in email or "." not in email:
+            raise RuntimeError("Invalid email address.")
+        if password != confirm:
+            raise RuntimeError("Passwords do not match.")
+        if not password or len(password) < 6:
+            raise RuntimeError("Passwords must be at least 6 characters long.")
+        curs = self.conn.cursor()
+        if curs.execute("SELECT 1 FROM users WHERE email=?", [email]).fetchone():
+            raise RuntimeError("Email address already exists.")
+        hashed = pbkdf2_sha512.encrypt(password)
+        curs.execute("INSERT INTO users VALUES (NULL, ?, ?)", [email, hashed])
+        self.conn.commit()
+        return self.validate_user(email, password)
+
+    def validate_user(self, email, password):
+        curs = self.conn.cursor()
+        user = curs.execute("SELECT id, email, password_hash FROM users WHERE email=?", [
+            email,
+        ]).fetchone()
+        if not user:
+            raise RuntimeError("Invalid email or password.")
+        if not pbkdf2_sha512.verify(password, user['password_hash']):
+            raise RuntimeError("Invalid email or password.")
+        return user['id']
+
+    #####
+
     def get_categories(self):
         curs = self.conn.cursor()
         curs.execute("SELECT category FROM categories ORDER BY category")
@@ -45,3 +85,15 @@ class DB(object):
         curs = self.conn.cursor()
         curs.execute("INSERT INTO categories VALUES (?)", [category])
         self.conn.commit()
+
+#####
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) == 2:
+        print "\nUse the `db` object to query the database. E.g.: db.conn.execute('select * from users').fetchall()\n"
+        db = DB(sys.argv[-1])
+        import code
+        code.interact(local=locals())
+    else:
+        print "Provide a path to an sqlite3 db file."

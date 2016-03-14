@@ -15,7 +15,7 @@ import random
 import sqlite3
 
 from flask import (
-    Flask, g, request, url_for,
+    Flask, g, request, url_for, session,
     render_template, redirect,
 )
 
@@ -51,6 +51,8 @@ def show_category(category, message=''):
 
 @app.route('/categories', methods=['GET', 'POST'])
 def add_category():
+    if 'user' not in session:
+        return redirect(url_for('login'))
     if request.method == 'GET':
         return render_template("add_category.html")
     category = request.form.get('category').replace(' ', '_')
@@ -76,8 +78,42 @@ def show_movie(title):
     movie = Movie(fetch_omdb_info(title))
     return render_template("movie.html", movie=movie)
 
+def register_or_login():
+    submit = request.form['submit']
+    if submit == 'reg':
+        user = g.db.create_user(request.form['r_email'], request.form['r_password'], request.form['r_confirm'])
+    elif submit == 'login':
+        user = g.db.validate_user(request.form['l_email'], request.form['l_password'])
+    else:
+        raise ValueError("Got unexpected submit value {!r}".format(submit))
+    return user
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'user' in session:
+        return redirect(url_for('index'))
+    if request.method == 'GET':
+        return render_template('login.html')
+    try:
+        user = register_or_login()
+    except RuntimeError, e:
+        error_type = '{}_error'.format(request.form['submit'])
+        template_params = dict(request.form.items())
+        template_params[error_type] = e.message
+        return render_template('login.html', **template_params)
+    session['user'] = user
+    return redirect(url_for('index'))
+
+@app.route('/logout')
+def logout():
+    if 'user' in session:
+        del session['user']
+    return redirect(url_for('index'))
+
 @app.route('/user')
 def show_user():
+    if 'user' not in session:
+        return redirect(url_for('login'))
     movies = ['Blade Runner', 'Mad Max: Fury Road', 'The Imitation Game']
     movies = [Movie(fetch_omdb_info(movie)) for movie in movies]
     return render_template("user.html", movies=movies)
@@ -87,5 +123,12 @@ def rehost_image():
     image = urllib.urlopen(request.args['url'])
     return (image.read(), '200 OK', {'Content-type': 'image/jpeg'})
 
+#####
+
 if __name__ == '__main__':
+    #setting the secret here for development purposes only
+    #in production you would load this from a config file, environment variable, etc. outside of version control
+    #uuid.getnode() returns a (hopefully) unique integer tied to your computer's hardware
+    import uuid
+    app.secret_key = str(uuid.getnode())
     app.run(host='0.0.0.0', debug=True)

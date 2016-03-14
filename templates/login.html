@@ -1,0 +1,43 @@
+{% extends '_base.html' %}
+{% block content %}
+<div class="col-lg-6">
+    <h1>Register</h1>
+    <p>Don't have an account yet? Register here.</p>
+    {{ error_box(reg_error) }}
+    <form method="post" action="{{ url_for('login') }}" class="bs_component">
+        <div class="form-group">
+            <label for="r_email" class="control-label">Email address:</label>
+            <input id="r_email" type="text" name="r_email" class="form-control" value="{{r_email}}" />
+        </div>
+        <div class="form-group">
+            <label for="r_password" class="control-label">Password:</label>
+            <input id="r_password" type="password" name="r_password" class="form-control" value="" />
+        </div>
+        <div class="form-group">
+            <label for="r_confirm" class="control-label">Confirm password:</label>
+            <input id="r_confirm" type="password" name="r_confirm" class="form-control" value="" />
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" name="submit" value="reg">Create account</button>
+        </div>
+    </form>
+</div>
+<div class="col-lg-6">
+    <h1>Log in</h1>
+    <p>Already have an account? Sign in here.</p>
+    {{ error_box(login_error) }}
+    <form method="post" action="{{ url_for('login') }}" class="bs_component">
+        <div class="form-group">
+            <label for="l_email" class="control-label">Email address:</label>
+            <input id="l_email" type="text" name="l_email" class="form-control" value="{{l_email}}" />
+        </div>
+        <div class="form-group">
+            <label for="l_password" class="control-label">Password:</label>
+            <input id="l_password" type="password" name="l_password" class="form-control" value="" />
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" name="submit" value="login">Log in</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

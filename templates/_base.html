@@ -30,6 +30,13 @@
                 <li><a href="{{url_for('random_movie')}}">Random movie</a></li>
                 <li><a href="{{url_for('show_user')}}">Your movies</a></li>
               </ul>
+              <ul class="nav navbar-nav navbar-right">
+                {% if session.user %}
+                <li><a href="{{url_for('logout')}}">Log out</a></li>
+                {% else %}
+                <li><a href="{{url_for('login')}}"><strong>Register</strong> or <strong>Log in</strong></a></li>
+                {% endif %}
+              </ul>
             </div>
         </div>
     </div>
