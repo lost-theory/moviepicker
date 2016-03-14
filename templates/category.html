@@ -1,6 +1,7 @@
 {% extends '_base.html' %}
 {% block content %}
 <h1>{{category.replace('_', ' ')}}</h1>
+{{ info_box(message) }}
 <ul>
 {% for title in titles %}
 <li><a href="{{url_for('show_movie', title=title)}}">{{title}}</a></li>

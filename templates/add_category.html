@@ -1,0 +1,14 @@
+{% extends '_base.html' %}
+{% block content %}
+<div class="col-lg-4">
+    <h1>Add a category</h1>
+    {{ error_box(error) }}
+    <form method="post" action="{{ url_for('add_category') }}" class="bs_component">
+        <div class="form-group">
+            <label for="category" class="control-label">Category name:</label>
+            <input id="category" type="text" name="category" class="form-control" value="{{category}}" />
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

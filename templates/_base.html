@@ -1,4 +1,4 @@
-{% from '_macros.html' import movie_details %}
+{% from '_macros.html' import movie_details, error_box, info_box %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -26,6 +26,7 @@
             </div>
             <div class="navbar-collapse collapse" id="navbar-main">
               <ul class="nav navbar-nav">
+                <li><a href="{{url_for('add_category')}}">Add a category</a></li>
                 <li><a href="{{url_for('random_movie')}}">Random movie</a></li>
                 <li><a href="{{url_for('show_user')}}">Your movies</a></li>
               </ul>

@@ -10,3 +10,20 @@
     </div>
 </div>
 {% endmacro %}
+
+{% macro error_box(message) %}
+{% if message %}
+    <div class="alert alert-danger">
+        <p><strong>Error:</strong> {{message}}</p>
+        <p>Please fix the error and try submitting again.</p>
+    </div>
+{% endif %}
+{% endmacro %}
+
+{% macro info_box(message) %}
+{% if message %}
+    <div class="alert alert-info">
+        <p>{{ message }}</p>
+    </div>
+{% endif %}
+{% endmacro %}

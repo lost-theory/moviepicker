@@ -12,36 +12,61 @@ Five views:
 
 import urllib
 import random
+import sqlite3
 
-from flask import Flask, render_template, request
+from flask import (
+    Flask, g, request, url_for,
+    render_template, redirect,
+)
 
-from movies import MoviePicker, Movie, fetch_wikipedia_titles, fetch_omdb_info
-
-CATEGORIES = [
-    'American_action_thriller_films',
-    'American_biographical_films',
-    'American_crime_drama_films',
-    'American_drama_films',
-    'American_epic_films',
-    'American_romantic_comedy_films',
-    'American_satirical_films',
-    'American_science_fiction_films',
-]
+from movies import (
+    MoviePicker, Movie,
+    fetch_wikipedia_titles, fetch_omdb_info, is_valid_category,
+)
+from models import DB
 
 app = Flask(__name__)
 
+#####
+
+@app.before_request
+def before_request():
+    g.db = DB("movies.db")
+
+@app.teardown_request
+def teardown_request(exc):
+    g.db.conn.close()
+
+#####
+
 @app.route('/')
 def index():
-    return render_template("index.html", categories=CATEGORIES)
+    categories = g.db.get_categories()
+    return render_template("index.html", categories=categories)
 
-@app.route('/movies/<category>')
-def show_category(category):
+@app.route('/categories/<category>')
+def show_category(category, message=''):
     titles = fetch_wikipedia_titles(category)
-    return render_template("movies.html", category=category, titles=titles)
+    return render_template("category.html", category=category, titles=titles, message=message)
+
+@app.route('/categories', methods=['GET', 'POST'])
+def add_category():
+    if request.method == 'GET':
+        return render_template("add_category.html")
+    category = request.form.get('category').replace(' ', '_')
+    try:
+        is_valid_category(category)
+        g.db.add_category(category)
+    except RuntimeError, e:
+        return render_template("add_category.html", category=category, error=e.message)
+    except sqlite3.IntegrityError:
+        return render_template("add_category.html", category=category, error="Category already exists.")
+
+    return show_category(category, message='Category created!')
 
 @app.route('/random')
 def random_movie():
-    cat = random.choice(CATEGORIES)
+    cat = random.choice(g.db.get_categories())
     titles = fetch_wikipedia_titles(cat)
     picker = MoviePicker(titles)
     return render_template("movie.html", movie=picker.get_random_movie())
@@ -63,5 +88,4 @@ def rehost_image():
     return (image.read(), '200 OK', {'Content-type': 'image/jpeg'})
 
 if __name__ == '__main__':
-    #app.config['PROPAGATE_EXCEPTIONS'] = True
     app.run(host='0.0.0.0', debug=True)

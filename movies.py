@@ -109,6 +109,17 @@ def fetch_wikipedia_titles(category):
         cmcontinue = data['continue']['cmcontinue']
     return filter_titles(out)
 
+def is_valid_category(category):
+    if not category:
+        raise RuntimeError("Category must not be blank.")
+
+    #try fetching it to ensure it actually returns some titles
+    titles = fetch_wikipedia_titles(category)
+    if not titles:
+        raise RuntimeError("Category is empty.")
+
+    return True
+
 def fetch_omdb_info(title):
     '''
     Retrieve movie information from OMDb API's title search.
