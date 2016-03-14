@@ -12,6 +12,13 @@ SCHEMA = '''
     );
     CREATE UNIQUE INDEX user_email ON users(email);
 
+    DROP TABLE if exists users_movies;
+    CREATE TABLE users_movies (
+        user_id INTEGER,
+        title VARCHAR(512) NOT NULL
+    );
+    CREATE INDEX users_movies_users_id ON users_movies(user_id);
+
     DROP TABLE if exists categories;
     CREATE TABLE categories (
         category VARCHAR(512) NOT NULL PRIMARY KEY
@@ -73,6 +80,31 @@ class DB(object):
         if not pbkdf2_sha512.verify(password, user['password_hash']):
             raise RuntimeError("Invalid email or password.")
         return user['id']
+
+    #####
+
+    def get_users_movies(self, user_id):
+        curs = self.conn.cursor()
+        movies = curs.execute("SELECT title FROM users_movies WHERE user_id=?", [
+            user_id,
+        ]).fetchall()
+        return [row['title'] for row in movies]
+
+    def add_user_movie(self, user_id, title):
+        curs = self.conn.cursor()
+        curs.execute("INSERT INTO users_movies VALUES (?, ?)", [
+            user_id,
+            title,
+        ])
+        self.conn.commit()
+
+    def remove_user_movie(self, user_id, title):
+        curs = self.conn.cursor()
+        curs.execute("DELETE FROM users_movies WHERE user_id=? AND title=?", [
+            user_id,
+            title,
+        ])
+        self.conn.commit()
 
     #####
 

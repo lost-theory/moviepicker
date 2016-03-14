@@ -47,5 +47,33 @@
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="https://bootswatch.com/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="https://bootswatch.com/assets/js/custom.js"></script>
+<script type="text/javascript">
+function handleMovieButton(action) {
+    var element = $(this);
+    var action = element.data('action');
+    var title = element.data('title');
+    element.hide('slow');
+    $.ajax({
+        url: "/user",
+        method: "POST",
+        data: {title: title, action: action}
+    }).done(function() {
+        return listSaved(action, element.parent());
+    });
+}
+
+function listSaved(action, container) {
+    if(action == "add") {
+        container.append("Movie saved to list.");
+    } else {
+        container.parents('.movie-container').hide('fast');
+    }
+}
+
+$().ready(function() {
+    $(".btn-add-movie").click(handleMovieButton);
+    $(".btn-remove-movie").click(handleMovieButton);
+});
+</script>
 </body>
 </html>

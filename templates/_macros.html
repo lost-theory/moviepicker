@@ -1,7 +1,12 @@
-{% macro movie_details(movie) %}
+{% macro movie_details(movie, action='add') %}
 <div class="row movie-container">
     <div class="col-md-8">
         {{movie}}
+        {% if session['user'] and action == 'add' %}
+        <p><a href="#add" class="btn btn-success btn-add-movie" data-title="{{movie.title}}" data-action="add">Add to your list</a></p>
+        {% elif action == 'remove' %}
+        <p><a href="#remove" class="btn btn-danger btn-remove-movie" data-title="{{movie.title}}" data-action="remove">Remove from your list</a></p>
+        {% endif %}
     </div>
     <div class="col-md-4">
     {% if movie.poster_url %}

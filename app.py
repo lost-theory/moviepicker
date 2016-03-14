@@ -110,11 +110,18 @@ def logout():
         del session['user']
     return redirect(url_for('index'))
 
-@app.route('/user')
+@app.route('/user', methods=['GET', 'POST'])
 def show_user():
     if 'user' not in session:
         return redirect(url_for('login'))
-    movies = ['Blade Runner', 'Mad Max: Fury Road', 'The Imitation Game']
+    if request.method == 'POST' and request.form['action'] == 'add':
+        g.db.add_user_movie(session['user'], request.form['title'])
+        return "Added."
+    elif request.method == 'POST' and request.form['action'] == 'remove':
+        g.db.remove_user_movie(session['user'], request.form['title'])
+        return "Removed."
+
+    movies = g.db.get_users_movies(session['user'])
     movies = [Movie(fetch_omdb_info(movie)) for movie in movies]
     return render_template("user.html", movies=movies)
 

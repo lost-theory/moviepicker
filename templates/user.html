@@ -1,7 +1,10 @@
 {% extends '_base.html' %}
 {% block content %}
     <h1>Your movies</h1>
+    {% if not movies %}
+        <p>You have no movies. Pick a <a href="{{url_for('index')}}">category</a> or view a <a href="{{url_for('random_movie')}}">random movie</a>.</p>
+    {% endif %}
     {% for movie in movies %}
-        {{ movie_details(movie) }}
+        {{ movie_details(movie, action='remove') }}
     {% endfor %}
 {% endblock %}
