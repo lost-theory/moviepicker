@@ -133,7 +133,7 @@ def fetch_omdb_info(title):
 
 ## classes ####################################################################
 
-class Movie(object):
+class MovieData(object):
     '''
     Represents a movie with data from the omdbapi.com.
     '''
@@ -196,7 +196,7 @@ class MoviePicker(object):
 
     def get_random_movie(self):
         '''
-        Pick a random title, fetch its data from OMDB, and return it as a Movie object.
+        Pick a random title, fetch its data from OMDB, and return it as a MovieData object.
         '''
         movie = None
         while not movie:
@@ -206,7 +206,7 @@ class MoviePicker(object):
             except RuntimeError:
                 #retry "RuntimeError: OMDb API returned u'Movie not found!'" exceptions
                 movie = None
-        return Movie(movie)
+        return MovieData(movie)
 
     def add_to_list(self, m):
         '''Add the given Movie object `m` to the list of picked movies.'''

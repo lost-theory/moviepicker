@@ -3,7 +3,7 @@
 <h1>Categories</h1>
 <ul>
     {% for category in categories %}
-    <li><a href="{{url_for('show_category', category=category)}}">{{category.replace('_', ' ')}}</a></li>
+    <li><a href="{{url_for('show_category', category=category)}}">{{category.name.replace('_', ' ')}}</a></li>
     {% endfor %}
 </ul>
 {% endblock %}

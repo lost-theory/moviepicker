@@ -10,9 +10,9 @@ Five views:
   /user                -> Show a list of the user's saved movies
 '''
 
-import urllib
+import os
 import random
-import sqlite3
+import urllib
 
 from flask import (
     Flask, g, request, url_for, session,
@@ -20,28 +20,18 @@ from flask import (
 )
 
 from movies import (
-    MoviePicker, Movie,
+    MoviePicker, MovieData,
     fetch_wikipedia_titles, fetch_omdb_info, is_valid_category,
 )
-from models import DB
+from models import db, User, Category, Movie
 
 app = Flask(__name__)
-
-#####
-
-@app.before_request
-def before_request():
-    g.db = DB("movies.db")
-
-@app.teardown_request
-def teardown_request(exc):
-    g.db.conn.close()
-
-#####
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DBURI', 'sqlite:///movies.db')
+db.init_app(app)
 
 @app.route('/')
 def index():
-    categories = g.db.get_categories()
+    categories = Category.query.all()
     return render_template("index.html", categories=categories)
 
 @app.route('/categories/<category>')
@@ -55,35 +45,33 @@ def add_category():
         return redirect(url_for('login'))
     if request.method == 'GET':
         return render_template("add_category.html")
-    category = request.form.get('category').replace(' ', '_')
+    name = request.form.get('category').replace(' ', '_')
     try:
-        is_valid_category(category)
-        g.db.add_category(category)
+        is_valid_category(name)
+        category = Category.create(name)
     except RuntimeError, e:
-        return render_template("add_category.html", category=category, error=e.message)
-    except sqlite3.IntegrityError:
-        return render_template("add_category.html", category=category, error="Category already exists.")
+        return render_template("add_category.html", category=name, error=e.message)
 
-    return show_category(category, message='Category created!')
+    return show_category(category.name, message='Category created!')
 
 @app.route('/random')
 def random_movie():
-    cat = random.choice(g.db.get_categories())
-    titles = fetch_wikipedia_titles(cat)
+    cat = random.choice(Category.query.all())
+    titles = fetch_wikipedia_titles(cat.name)
     picker = MoviePicker(titles)
     return render_template("movie.html", movie=picker.get_random_movie())
 
 @app.route('/movie/<title>')
 def show_movie(title):
-    movie = Movie(fetch_omdb_info(title))
+    movie = MovieData(fetch_omdb_info(title))
     return render_template("movie.html", movie=movie)
 
 def register_or_login():
     submit = request.form['submit']
     if submit == 'reg':
-        user = g.db.create_user(request.form['r_email'], request.form['r_password'], request.form['r_confirm'])
+        user = User.create(request.form['r_email'], request.form['r_password'], request.form['r_confirm'])
     elif submit == 'login':
-        user = g.db.validate_user(request.form['l_email'], request.form['l_password'])
+        user = User.validate(request.form['l_email'], request.form['l_password'])
     else:
         raise ValueError("Got unexpected submit value {!r}".format(submit))
     return user
@@ -101,7 +89,7 @@ def login():
         template_params = dict(request.form.items())
         template_params[error_type] = e.message
         return render_template('login.html', **template_params)
-    session['user'] = user
+    session['user'] = user.id
     return redirect(url_for('index'))
 
 @app.route('/logout')
@@ -115,14 +103,14 @@ def show_user():
     if 'user' not in session:
         return redirect(url_for('login'))
     if request.method == 'POST' and request.form['action'] == 'add':
-        g.db.add_user_movie(session['user'], request.form['title'])
+        User.add_to_list(session['user'], request.form['title'])
         return "Added."
     elif request.method == 'POST' and request.form['action'] == 'remove':
-        g.db.remove_user_movie(session['user'], request.form['title'])
+        User.remove_from_list(session['user'], request.form['title'])
         return "Removed."
 
-    movies = g.db.get_users_movies(session['user'])
-    movies = [Movie(fetch_omdb_info(movie)) for movie in movies]
+    movies = User.query.get(session['user']).movies
+    movies = [MovieData(fetch_omdb_info(movie.title)) for movie in movies]
     return render_template("user.html", movies=movies)
 
 @app.route('/rehost_image')
