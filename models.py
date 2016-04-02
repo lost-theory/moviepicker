@@ -19,8 +19,8 @@ DEFAULT_CATEGORIES = [
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(256), unique=True)
-    password_hash = db.Column(db.String(256), unique=True)
+    email = db.Column(db.String(512), unique=True, nullable=False)
+    password_hash = db.Column(db.String(512), nullable=False)
 
     movies = db.relationship('Movie', backref=db.backref('user', lazy='select'))
 
@@ -72,7 +72,7 @@ class User(db.Model):
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(256), unique=True)
+    name = db.Column(db.String(256), unique=True, nullable=False)
 
     def __init__(self, name):
         self.name = name
@@ -101,8 +101,8 @@ class Category(db.Model):
 
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(256))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    title = db.Column(db.String(256), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __init__(self, title, user_id):
         self.title = title
