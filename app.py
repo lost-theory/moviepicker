@@ -27,6 +27,7 @@ from models import db, User, Category, Movie
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DBURI', 'sqlite:///movies.db')
+app.config['SQLALCHEMY_ECHO'] = bool(os.environ.get('ECHO'))
 db.init_app(app)
 
 @app.route('/')
