@@ -57,17 +57,17 @@ class User(db.Model):
             raise RuntimeError("Invalid email or password.")
         return u
 
-    @staticmethod
-    def add_to_list(user_id, title):
-        m = Movie(title, user_id)
-        db.session.add(m)
+    def add_to_list(self, title):
+        m = Movie(title=title)
+        self.movies.append(m)
+        db.session.add(self)
         db.session.commit()
         return m
 
-    @staticmethod
-    def remove_from_list(user_id, title):
-        m = Movie.query.filter_by(user_id=user_id, title=title).one()
-        db.session.delete(m)
+    def remove_from_list(self, title):
+        movies = Movie.query.filter_by(user_id=self.id, title=title).all()
+        for m in movies:
+            db.session.delete(m)
         db.session.commit()
 
 class Category(db.Model):
@@ -104,12 +104,8 @@ class Movie(db.Model):
     title = db.Column(db.String(256), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    def __init__(self, title, user_id):
-        self.title = title
-        self.user_id = user_id
-
     def __repr__(self):
-        return '<Movie title_id={!r} for user_id={!r}>'.format(self.title, self.user_id)
+        return '<Movie title={!r} for user_id={!r}>'.format(self.title, self.user_id)
 
 #####
 

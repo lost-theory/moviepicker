@@ -103,10 +103,10 @@ def show_user():
     if 'user' not in session:
         return redirect(url_for('login'))
     if request.method == 'POST' and request.form['action'] == 'add':
-        User.add_to_list(session['user'], request.form['title'])
+        User.query.get(session['user']).add_to_list(request.form['title'])
         return "Added."
     elif request.method == 'POST' and request.form['action'] == 'remove':
-        User.remove_from_list(session['user'], request.form['title'])
+        User.query.get(session['user']).remove_from_list(request.form['title'])
         return "Removed."
 
     movies = User.query.get(session['user']).movies
