@@ -6,8 +6,12 @@
     {{ error_box(reg_error) }}
     <form method="post" action="{{ url_for('login') }}" class="bs_component">
         <div class="form-group">
+            <label for="r_username" class="control-label">Username:</label>
+            <input id="r_username" type="text" name="r_username" class="form-control" value="{{request.form.r_username}}" />
+        </div>
+        <div class="form-group">
             <label for="r_email" class="control-label">Email address:</label>
-            <input id="r_email" type="text" name="r_email" class="form-control" value="{{r_email}}" />
+            <input id="r_email" type="text" name="r_email" class="form-control" value="{{request.form.r_email}}" />
         </div>
         <div class="form-group">
             <label for="r_password" class="control-label">Password:</label>
@@ -28,8 +32,8 @@
     {{ error_box(login_error) }}
     <form method="post" action="{{ url_for('login') }}" class="bs_component">
         <div class="form-group">
-            <label for="l_email" class="control-label">Email address:</label>
-            <input id="l_email" type="text" name="l_email" class="form-control" value="{{l_email}}" />
+            <label for="l_username_or_email" class="control-label">Username or email address:</label>
+            <input id="l_username_or_email" type="text" name="l_username_or_email" class="form-control" value="{{request.form.l_username_or_email}}" />
         </div>
         <div class="form-group">
             <label for="l_password" class="control-label">Password:</label>

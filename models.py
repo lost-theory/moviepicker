@@ -16,45 +16,57 @@ DEFAULT_CATEGORIES = [
     'American_satirical_films',
     'American_science_fiction_films',
 ]
+MIN_PASSWORD_LENGTH = 8
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(512), unique=True, nullable=False)
     password_hash = db.Column(db.String(512), nullable=False)
 
     movies = db.relationship('Movie', backref=db.backref('user', lazy='select'))
 
-    def __init__(self, email, password):
+    def __init__(self, username, email, password):
+        self.username = username
         self.email = email
         self.password_hash = pbkdf2_sha512.encrypt(password)
 
     def __repr__(self):
-        return '<User id={!r} email={!r}>'.format(self.id, self.email)
+        return '<User id={!r} username={!r} email={!r}>'.format(self.id, self.username, self.email)
 
     @classmethod
-    def create(cls, email, password, confirm):
+    def create(cls, username, email, password, confirm):
+        if not username.isalnum():
+            raise RuntimeError("Invalid username. Only letters and numbers are allowed.")
         if "@" not in email or "." not in email:
             raise RuntimeError("Invalid email address.")
         if password != confirm:
             raise RuntimeError("Passwords do not match.")
-        if not password or len(password) < 6:
-            raise RuntimeError("Passwords must be at least 6 characters long.")
+        if not password or len(password) < MIN_PASSWORD_LENGTH:
+            raise RuntimeError("Passwords must be at least {} characters long.".format(MIN_PASSWORD_LENGTH))
 
-        u = cls(email, password)
+        u = cls(username, email, password)
         db.session.add(u)
         try:
             db.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            raise RuntimeError("That email address is already in use.")
+        except sqlalchemy.exc.IntegrityError, exc:
+            if "username" in exc.message:
+                raise RuntimeError("That username is already in use.")
+            elif "email" in exc.message:
+                raise RuntimeError("That email address is already in use.")
+            else:
+                raise
         return u
 
     @classmethod
-    def validate(cls, email, password):
-        u = cls.query.filter_by(email=email).one_or_none()
+    def validate(cls, username_or_email, password):
+        u = cls.query.filter(
+            db.or_(cls.username == username_or_email, cls.email == username_or_email)
+        ).one_or_none()
         if not u:
-            raise RuntimeError("Invalid email or password.")
+            raise RuntimeError("Invalid username/email or password.")
         if not pbkdf2_sha512.verify(password, u.password_hash):
-            raise RuntimeError("Invalid email or password.")
+            raise RuntimeError("Invalid username/email or password.")
         return u
 
     def add_to_list(self, title):

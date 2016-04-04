@@ -67,12 +67,12 @@ def show_movie(title):
     movie = MovieData(fetch_omdb_info(title))
     return render_template("movie.html", movie=movie)
 
-def register_or_login():
-    submit = request.form['submit']
+def register_or_login(form):
+    submit = form['submit']
     if submit == 'reg':
-        user = User.create(request.form['r_email'], request.form['r_password'], request.form['r_confirm'])
+        user = User.create(form['r_username'], form['r_email'], form['r_password'], form['r_confirm'])
     elif submit == 'login':
-        user = User.validate(request.form['l_email'], request.form['l_password'])
+        user = User.validate(form['l_username_or_email'], form['l_password'])
     else:
         raise ValueError("Got unexpected submit value {!r}".format(submit))
     return user
@@ -84,12 +84,10 @@ def login():
     if request.method == 'GET':
         return render_template('login.html')
     try:
-        user = register_or_login()
-    except RuntimeError, e:
+        user = register_or_login(request.form)
+    except RuntimeError, exc:
         error_type = '{}_error'.format(request.form['submit'])
-        template_params = dict(request.form.items())
-        template_params[error_type] = e.message
-        return render_template('login.html', **template_params)
+        return render_template('login.html', **{error_type: exc.message})
     session['user'] = user.id
     return redirect(url_for('index'))
 
