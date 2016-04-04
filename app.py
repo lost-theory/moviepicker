@@ -1,13 +1,5 @@
 '''
-Integrate the "movie picker" OO code from Exercise 4 into the simple Flask web app
-we wrote during class #3.
-
-Five views:
-  /                    -> Display a list of categories
-  /movies/<category>   -> Display a list of all movies for a given category
-  /movie/<title>       -> Display movie details from omdbapi.com for the given title
-  /random              -> Display a random movie's details from a random category, ask if the user wants to save it to their list
-  /user                -> Show a list of the user's saved movies
+Movie picker flask application.
 '''
 
 import os
@@ -20,10 +12,10 @@ from flask import (
 )
 
 from movies import (
-    MoviePicker, MovieData,
+    MovieData,
     fetch_wikipedia_titles, fetch_omdb_info, is_valid_category,
 )
-from models import db, User, Category, Movie
+from models import db, User, Category, Movie, Comment
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DBURI', 'sqlite:///movies.db')
@@ -58,14 +50,15 @@ def add_category():
 @app.route('/random')
 def random_movie():
     cat = random.choice(Category.query.all())
-    titles = fetch_wikipedia_titles(cat.name)
-    picker = MoviePicker(titles)
-    return render_template("movie.html", movie=picker.get_random_movie())
+    title = random.choice(fetch_wikipedia_titles(cat.name))
+    return redirect(url_for("show_movie", title=title))
 
 @app.route('/movie/<title>')
 def show_movie(title):
-    movie = MovieData(fetch_omdb_info(title))
-    return render_template("movie.html", movie=movie)
+    movie = Movie.query.filter_by(title=title).one_or_none()
+    comments = movie.comments if movie else []
+    moviedata = MovieData(fetch_omdb_info(title))
+    return render_template("movie.html", moviedata=moviedata, comments=comments)
 
 def register_or_login(form):
     submit = form['submit']
@@ -111,6 +104,17 @@ def show_user():
     movies = User.query.get(session['user']).movies
     movies = [MovieData(fetch_omdb_info(movie.title)) for movie in movies]
     return render_template("user.html", movies=movies)
+
+@app.route('/comments', methods=['POST'])
+def post_comment():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    title = request.form['title']
+    contents = request.form['contents']
+    if contents:
+        m = Movie.get_or_create(title)
+        m.add_comment(Comment(user_id=session['user'], contents=contents))
+    return redirect(url_for("show_movie", title=title))
 
 @app.route('/rehost_image')
 def rehost_image():

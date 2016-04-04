@@ -1,4 +1,27 @@
 {% extends '_base.html' %}
 {% block content %}
-    {{ movie_details(movie) }}
+    {{ movie_details(moviedata) }}
+    {% if comments %}
+        <h3>Comments</h3>
+        {% for comment in comments %}
+            <div class="comment">
+                <p>by <em>{{ comment.user.username }}</em> on <em>{{ comment.created.strftime("%Y-%m-%d %H:%M:%S") }}</em></p>
+                <blockquote>
+                    {% for line in comment.contents.split('\n') %}
+                        {{ line }}<br/>
+                    {% endfor %}
+                </blockquote>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <form method="post" action="{{ url_for('post_comment') }}" class="bs_component">
+        <input type="hidden" name="title" value="{{ moviedata.title }}" />
+        <div class="form-group">
+            <label for="contents" class="control-label">Leave a comment:</label>
+            <textarea id="contents" name="contents" rows="4" class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" name="submit" value="submit">Submit</button>
+        </div>
+    </form>
 {% endblock %}

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from passlib.hash import pbkdf2_sha512
 from flask_sqlalchemy import SQLAlchemy
@@ -119,6 +120,8 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(256), unique=True, nullable=False)
 
+    comments = db.relationship('Comment', lazy='dynamic')
+
     @classmethod
     def get_or_create(cls, title):
         m = cls.query.filter_by(title=title).one_or_none()
@@ -129,8 +132,31 @@ class Movie(db.Model):
         db.session.commit()
         return m
 
+    def add_comment(self, comment):
+        self.comments.append(comment)
+        db.session.add(self)
+        db.session.commit()
+
     def __repr__(self):
         return '<Movie id={!r} title={!r}>'.format(self.id, self.title)
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    movie_id = db.Column('movie_id', db.Integer, db.ForeignKey('movie.id'))
+    user_id = db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+    contents = db.Column(db.Text, nullable=False)
+    created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User')
+
+    def __repr__(self):
+        return '<Comment id={!r} movie_id={!r} user_id={!r} created={!r} contents={!r}>'.format(
+            self.id,
+            self.movie_id,
+            self.user_id,
+            self.created,
+            self.contents if len(self.contents) < 20 else (self.contents[:17] + "..."),
+        )
 
 #####
 
