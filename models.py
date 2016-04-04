@@ -18,13 +18,18 @@ DEFAULT_CATEGORIES = [
 ]
 MIN_PASSWORD_LENGTH = 8
 
+movielist = db.Table('movielist',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('movie_id', db.Integer, db.ForeignKey('movie.id')),
+)
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(512), unique=True, nullable=False)
     password_hash = db.Column(db.String(512), nullable=False)
 
-    movies = db.relationship('Movie', backref=db.backref('user', lazy='select'))
+    movies = db.relationship('Movie', secondary=movielist, backref=db.backref('users', lazy='dynamic'))
 
     def __init__(self, username, email, password):
         self.username = username
@@ -70,16 +75,15 @@ class User(db.Model):
         return u
 
     def add_to_list(self, title):
-        m = Movie(title=title)
+        m = Movie.get_or_create(title)
         self.movies.append(m)
         db.session.add(self)
         db.session.commit()
         return m
 
     def remove_from_list(self, title):
-        movies = Movie.query.filter_by(user_id=self.id, title=title).all()
-        for m in movies:
-            db.session.delete(m)
+        self.movies = [m for m in self.movies if m.title != title]
+        db.session.add(self)
         db.session.commit()
 
 class Category(db.Model):
@@ -113,17 +117,26 @@ class Category(db.Model):
 
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(256), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(256), unique=True, nullable=False)
+
+    @classmethod
+    def get_or_create(cls, title):
+        m = cls.query.filter_by(title=title).one_or_none()
+        if m:
+            return m
+        m = cls(title=title)
+        db.session.add(m)
+        db.session.commit()
+        return m
 
     def __repr__(self):
-        return '<Movie title={!r} for user_id={!r}>'.format(self.title, self.user_id)
+        return '<Movie id={!r} title={!r}>'.format(self.id, self.title)
 
 #####
 
 if __name__ == "__main__":
     from app import app
-    print "Use db.create_all() to create the database."
+    print("Use Category.load_default_categories() to load categories.")
     with app.app_context():
         db.create_all()
         import code; code.interact(local=locals())
