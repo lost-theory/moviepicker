@@ -125,4 +125,5 @@ if __name__ == "__main__":
     from app import app
     print "Use db.create_all() to create the database."
     with app.app_context():
+        db.create_all()
         import code; code.interact(local=locals())
