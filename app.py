@@ -5,6 +5,7 @@ Movie picker flask application.
 import os
 import random
 import urllib
+from functools import wraps
 
 from flask import (
     Flask, g, request, url_for, session,
@@ -47,6 +48,16 @@ admin = Admin(app, name='MoviePicker Admin', index_view=ProtectedAdminIndexView(
 for model in [User, Category, Movie, Comment]:
     admin.add_view(ProtectedAdminModelView(model, db.session))
 
+## utilities ##################################################################
+
+def login_required(f):
+    @wraps(f)
+    def inner(*a, **kw):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*a, **kw)
+    return inner
+
 ## application code ###########################################################
 
 @app.route('/')
@@ -60,9 +71,8 @@ def show_category(category, message=''):
     return render_template("category.html", category=category, titles=titles, message=message)
 
 @app.route('/categories', methods=['GET', 'POST'])
+@login_required
 def add_category():
-    if 'user' not in session:
-        return redirect(url_for('login'))
     if request.method == 'GET':
         return render_template("add_category.html")
     name = request.form.get('category').replace(' ', '_')
@@ -118,9 +128,8 @@ def logout():
     return redirect(url_for('index'))
 
 @app.route('/user', methods=['GET', 'POST'])
+@login_required
 def show_user():
-    if 'user' not in session:
-        return redirect(url_for('login'))
     if request.method == 'POST' and request.form['action'] == 'add':
         User.query.get(session['user']).add_to_list(request.form['title'])
         return "Added."
@@ -133,9 +142,8 @@ def show_user():
     return render_template("user.html", movies=movies)
 
 @app.route('/comments', methods=['POST'])
+@login_required
 def post_comment():
-    if 'user' not in session:
-        return redirect(url_for('login'))
     title = request.form['title']
     contents = request.form['contents']
     if contents:
