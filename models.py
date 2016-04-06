@@ -87,6 +87,12 @@ class User(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def to_json(self):
+        return dict(
+            id=self.id,
+            username=self.username,
+        )
+
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), unique=True, nullable=False)
@@ -116,6 +122,12 @@ class Category(db.Model):
             db.session.add(cls(c))
         db.session.commit()
 
+    def to_json(self):
+        return dict(
+            id=self.id,
+            name=self.name,
+        )
+
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(256), unique=True, nullable=False)
@@ -140,6 +152,13 @@ class Movie(db.Model):
     def __repr__(self):
         return '<Movie id={!r} title={!r}>'.format(self.id, self.title)
 
+    def to_json(self):
+        return dict(
+            id=self.id,
+            title=self.title,
+            comments=[row.to_json() for row in self.comments],
+        )
+
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     movie_id = db.Column('movie_id', db.Integer, db.ForeignKey('movie.id'))
@@ -156,6 +175,15 @@ class Comment(db.Model):
             self.user_id,
             self.created,
             self.contents if len(self.contents) < 20 else (self.contents[:17] + "..."),
+        )
+
+    def to_json(self):
+        return dict(
+            id=self.id,
+            movie_id=self.movie_id,
+            user_id=self.user_id,
+            contents=self.contents,
+            created=self.created.isoformat(),
         )
 
 #####
