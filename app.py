@@ -31,14 +31,14 @@ class ProtectedAdminIndexView(AdminIndexView):
     '''Login protected index page for the admin area.'''
     @expose('/')
     def index(self):
-        if session.get('user') != 1:
+        if not is_admin():
             return redirect(url_for('login'))
         return super(ProtectedAdminIndexView, self).index()
 
 class ProtectedAdminModelView(ModelView):
     '''Login protected views for models in the admin area.'''
     def is_accessible(self):
-        return session.get('user') == 1
+        return is_admin()
 
     def inaccessible_callback(self, *a, **kw):
         return redirect(url_for('login'))
@@ -50,10 +50,37 @@ for model in [User, Category, Movie, Comment]:
 
 ## utilities ##################################################################
 
+@app.before_request
+def before_request():
+    '''
+    If there is a user currently in the session, look up their User object in
+    the database and set `g.user`.
+    '''
+    g.user = None
+    if 'user' in session:
+        g.user = User.query.get(session['user'])
+
+def is_admin():
+    return g.user and g.user.id == 1
+
+def is_logged_in():
+    return bool(g.user)
+
+@app.context_processor
+def add_utils_to_template_context():
+    return dict(
+        is_admin=is_admin,
+        is_logged_in=is_logged_in,
+    )
+
 def login_required(f):
+    '''
+    View decorator that ensures a logged in user is in the session, redirecting
+    to the login page otherwise.
+    '''
     @wraps(f)
     def inner(*a, **kw):
-        if 'user' not in session:
+        if not is_logged_in():
             return redirect(url_for('login'))
         return f(*a, **kw)
     return inner
@@ -109,7 +136,7 @@ def register_or_login(form):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if 'user' in session:
+    if g.user:
         return redirect(url_for('index'))
     if request.method == 'GET':
         return render_template('login.html')
@@ -131,13 +158,13 @@ def logout():
 @login_required
 def show_user():
     if request.method == 'POST' and request.form['action'] == 'add':
-        User.query.get(session['user']).add_to_list(request.form['title'])
+        User.query.get(g.user.id).add_to_list(request.form['title'])
         return "Added."
     elif request.method == 'POST' and request.form['action'] == 'remove':
-        User.query.get(session['user']).remove_from_list(request.form['title'])
+        User.query.get(g.user.id).remove_from_list(request.form['title'])
         return "Removed."
 
-    movies = User.query.get(session['user']).movies
+    movies = g.user.movies
     movies = [MovieData(fetch_omdb_info(movie.title)) for movie in movies]
     return render_template("user.html", movies=movies)
 
@@ -148,7 +175,7 @@ def post_comment():
     contents = request.form['contents']
     if contents:
         m = Movie.get_or_create(title)
-        m.add_comment(Comment(user_id=session['user'], contents=contents))
+        m.add_comment(Comment(user_id=g.user.id, contents=contents))
     return redirect(url_for("show_movie", title=title))
 
 @app.route('/rehost_image')

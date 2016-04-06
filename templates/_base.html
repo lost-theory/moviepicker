@@ -13,6 +13,7 @@
       <script src="https://bootswatch.com/bower_components/respond/dest/respond.min.js"></script>
     <![endif]-->
     <style type="text/css">
+        #navbar-main p { padding-right: 12px; }
         .movie-container { padding: 20px 0px 20px 0px; }
         .movie-container span.poster { display: inline-block; }
         .movie-container span.poster img { width: 65%; }
@@ -33,12 +34,16 @@
                 <li><a href="{{url_for('show_user')}}">Your movies</a></li>
               </ul>
               <ul class="nav navbar-nav navbar-right">
-                {% if session.user %}
-                <li><a href="{{url_for('logout')}}">Log out</a></li>
+                {% if is_logged_in() %}
+                  {% if is_admin() %}<li><a href="{{url_for('admin.index')}}">Admin</a></li> {% endif %}
+                  <li><a href="{{url_for('logout')}}">Log out</a></li>
                 {% else %}
-                <li><a href="{{url_for('login')}}"><strong>Register</strong> or <strong>Log in</strong></a></li>
+                  <li><a href="{{url_for('login')}}"><strong>Register</strong> or <strong>Log in</strong></a></li>
                 {% endif %}
               </ul>
+              {% if is_logged_in() %}
+                <p class="navbar-text navbar-right">Signed in as <a href="{{url_for('show_user')}}">{{g.user.username}}</a></p>
+              {% endif %}
             </div>
         </div>
     </div>
