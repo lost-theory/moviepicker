@@ -19,6 +19,7 @@ from movies import (
     fetch_wikipedia_titles, fetch_omdb_info, is_valid_category,
 )
 from models import db, User, Category, Movie, Comment
+from api import api
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DBURI', 'sqlite:///movies.db')
@@ -85,25 +86,9 @@ def login_required(f):
         return f(*a, **kw)
     return inner
 
-## class views ################################################################
-
-from flask.views import View
-from flask import jsonify
-
-class APIView(View):
-    def __init__(self, model_class):
-        self.model = model_class
-
-    def dispatch_request(self):
-        result = [row.to_json() for row in self.model.query.all()]
-        return jsonify({"result": result})
-
-app.add_url_rule('/api/user', view_func=APIView.as_view('api_user', User))
-app.add_url_rule('/api/category', view_func=APIView.as_view('api_category', Category))
-app.add_url_rule('/api/movie', view_func=APIView.as_view('api_movie', Movie))
-app.add_url_rule('/api/comment', view_func=APIView.as_view('api_comment', Comment))
-
 ## application code ###########################################################
+
+app.register_blueprint(api, url_prefix='/api')
 
 @app.route('/')
 def index():
