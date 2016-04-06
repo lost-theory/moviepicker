@@ -10,6 +10,8 @@ from flask import (
     Flask, g, request, url_for, session,
     render_template, redirect,
 )
+from flask_admin import Admin, AdminIndexView, expose
+from flask_admin.contrib.sqla import ModelView
 
 from movies import (
     MovieData,
@@ -21,6 +23,31 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DBURI', 'sqlite:///movies.db')
 app.config['SQLALCHEMY_ECHO'] = bool(os.environ.get('ECHO'))
 db.init_app(app)
+
+## flask-admin code ###########################################################
+
+class ProtectedAdminIndexView(AdminIndexView):
+    '''Login protected index page for the admin area.'''
+    @expose('/')
+    def index(self):
+        if session.get('user') != 1:
+            return redirect(url_for('login'))
+        return super(ProtectedAdminIndexView, self).index()
+
+class ProtectedAdminModelView(ModelView):
+    '''Login protected views for models in the admin area.'''
+    def is_accessible(self):
+        return session.get('user') == 1
+
+    def inaccessible_callback(self, *a, **kw):
+        return redirect(url_for('login'))
+
+admin = Admin(app, name='MoviePicker Admin', index_view=ProtectedAdminIndexView())
+
+for model in [User, Category, Movie, Comment]:
+    admin.add_view(ProtectedAdminModelView(model, db.session))
+
+## application code ###########################################################
 
 @app.route('/')
 def index():
