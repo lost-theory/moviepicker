@@ -35,7 +35,7 @@
               </ul>
               <ul class="nav navbar-nav navbar-right">
                 {% if is_logged_in() %}
-                  {% if is_admin() %}<li><a href="{{url_for('admin.index')}}">Admin</a></li> {% endif %}
+                  {% if is_admin_visible() %}<li><a href="{{url_for('admin.index')}}">Admin</a></li> {% endif %}
                   <li><a href="{{url_for('logout')}}">Log out</a></li>
                 {% else %}
                   <li><a href="{{url_for('login')}}"><strong>Register</strong> or <strong>Log in</strong></a></li>

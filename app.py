@@ -32,7 +32,7 @@ class ProtectedAdminIndexView(AdminIndexView):
     '''Login protected index page for the admin area.'''
     @expose('/')
     def index(self):
-        if not is_admin():
+        if not is_admin_visible():
             return redirect(url_for('login'))
         return super(ProtectedAdminIndexView, self).index()
 
@@ -62,7 +62,10 @@ def before_request():
         g.user = User.query.get(session['user'])
 
 def is_admin():
-    return g.user and g.user.id == 1
+    return g.user and g.user.role == 'admin'
+
+def is_admin_visible():
+    return g.user and g.user.role in ['admin', 'moderator']
 
 def is_logged_in():
     return bool(g.user)
@@ -70,7 +73,7 @@ def is_logged_in():
 @app.context_processor
 def add_utils_to_template_context():
     return dict(
-        is_admin=is_admin,
+        is_admin_visible=is_admin_visible,
         is_logged_in=is_logged_in,
     )
 
