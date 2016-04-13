@@ -166,6 +166,7 @@ class Comment(db.Model):
     user_id = db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
     contents = db.Column(db.Text, nullable=False)
     is_visible = db.Column(db.Boolean, default=False)
+    is_deleted = db.Column(db.Boolean, default=False)
     created = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User')
