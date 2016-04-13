@@ -6,12 +6,13 @@ import os
 import random
 import urllib
 from functools import wraps
+from datetime import datetime, timedelta
 
 from flask import (
     Flask, g, request, url_for, session,
     render_template, redirect,
 )
-from flask_admin import Admin, AdminIndexView, expose
+from flask_admin import Admin, AdminIndexView, BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 
 from movies import (
@@ -44,7 +45,33 @@ class ProtectedAdminModelView(ModelView):
     def inaccessible_callback(self, *a, **kw):
         return redirect(url_for('login'))
 
+class CommentModeration(BaseView):
+    '''Easier moderation of comments.'''
+    def is_accessible(self):
+        return is_admin_visible()
+
+    def inaccessible_callback(self, *a, **kw):
+        return redirect(url_for('login'))
+
+    @expose('/')
+    def index(self):
+        one_day_ago = datetime.utcnow() - timedelta(hours=24)
+        comments = Comment.query.filter(
+            db.and_(Comment.created >= one_day_ago, Comment.is_visible == False)
+        ).all()
+        return self.render('admin/moderation.html', comments=comments)
+
+    @expose('/approve', methods=['POST'])
+    def approve(self):
+        comment_id = int(request.values['comment_id'])
+        c = Comment.query.get(comment_id)
+        c.is_visible = True
+        db.session.add(c)
+        db.session.commit()
+        return redirect(url_for('moderation.index'))
+
 admin = Admin(app, name='MoviePicker Admin', index_view=ProtectedAdminIndexView())
+admin.add_view(CommentModeration(name='Moderation', endpoint='moderation'))
 
 for model in [User, Category, Movie, Comment]:
     admin.add_view(ProtectedAdminModelView(model, db.session))

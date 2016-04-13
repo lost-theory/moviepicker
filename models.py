@@ -133,7 +133,7 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(256), unique=True, nullable=False)
 
-    comments = db.relationship('Comment', lazy='dynamic')
+    comments = db.relationship('Comment', backref=db.backref('movie', lazy='select'), lazy='dynamic')
 
     @classmethod
     def get_or_create(cls, title):

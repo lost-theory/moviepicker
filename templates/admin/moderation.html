@@ -1,0 +1,27 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<p>Unmoderated comments posted in the last 24 hours:</p>
+<table class="table table-striped">
+    <tr>
+        <th>Username</th>
+        <th>Movie</th>
+        <th>Comment text</th>
+        <th>Date posted</th>
+        <th></th>
+    </tr>
+    {% for row in comments %}
+    <tr>
+        <td>{{row.user.username}}</td>
+        <td>{{row.movie.title}}</td>
+        <td>{{row.contents}}</td>
+        <td>{{row.created}}</td>
+        <td>
+            <form method="post" action="{{ url_for('moderation.approve', comment_id=row.id) }}">
+                <input type="submit" value="Approve" />
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
