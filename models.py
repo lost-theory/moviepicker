@@ -29,6 +29,7 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(512), unique=True, nullable=False)
     password_hash = db.Column(db.String(512), nullable=False)
+    role = db.Column(db.String(512))
 
     movies = db.relationship('Movie', secondary=movielist, backref=db.backref('users', lazy='dynamic'))
 
@@ -164,6 +165,7 @@ class Comment(db.Model):
     movie_id = db.Column('movie_id', db.Integer, db.ForeignKey('movie.id'))
     user_id = db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
     contents = db.Column(db.Text, nullable=False)
+    is_visible = db.Column(db.Boolean, default=False)
     created = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User')
