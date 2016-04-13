@@ -1,10 +1,8 @@
 '''
 To run tests:
 
-$ ~/mp_app_env/bin/python -m unittest tests
-..
-----------------------------------------------------------------------
-Ran 2 tests in 0.051s
+$ ~/mp_app_env/bin/python runtests.py
+$ ~/mp_app_env/bin/python runtests.py --coverage
 '''
 
 import os
@@ -40,3 +38,4 @@ class ModelTests(AppTestCase):
             assert u.username == "test"
             assert u.email == "test@wow.com"
             assert u.password_hash != "asdfasdf"
+
