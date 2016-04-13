@@ -126,7 +126,7 @@ def random_movie():
 @app.route('/movie/<title>')
 def show_movie(title):
     movie = Movie.query.filter_by(title=title).one_or_none()
-    comments = movie.comments if movie else []
+    comments = movie.comments.filter_by(is_visible=True) if movie else []
     moviedata = MovieData(fetch_omdb_info(title))
     return render_template("movie.html", moviedata=moviedata, comments=comments)
 
