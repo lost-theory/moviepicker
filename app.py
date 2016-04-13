@@ -57,7 +57,7 @@ class CommentModeration(BaseView):
     def index(self):
         one_day_ago = datetime.utcnow() - timedelta(hours=24)
         comments = Comment.query.filter(
-            db.and_(Comment.created >= one_day_ago, Comment.is_visible == False)
+            db.and_(Comment.created >= one_day_ago, Comment.is_visible == False, Comment.is_deleted != True)
         ).all()
         return self.render('admin/moderation.html', comments=comments)
 
@@ -66,6 +66,15 @@ class CommentModeration(BaseView):
         comment_id = int(request.values['comment_id'])
         c = Comment.query.get(comment_id)
         c.is_visible = True
+        db.session.add(c)
+        db.session.commit()
+        return redirect(url_for('moderation.index'))
+
+    @expose('/reject', methods=['POST'])
+    def reject(self):
+        comment_id = int(request.values['comment_id'])
+        c = Comment.query.get(comment_id)
+        c.is_deleted = True
         db.session.add(c)
         db.session.commit()
         return redirect(url_for('moderation.index'))
@@ -153,7 +162,7 @@ def random_movie():
 @app.route('/movie/<title>')
 def show_movie(title):
     movie = Movie.query.filter_by(title=title).one_or_none()
-    comments = movie.comments.filter_by(is_visible=True) if movie else []
+    comments = movie.comments.filter_by(is_visible=True, is_deleted=False) if movie else []
     moviedata = MovieData(fetch_omdb_info(title))
     return render_template("movie.html", moviedata=moviedata, comments=comments)
 

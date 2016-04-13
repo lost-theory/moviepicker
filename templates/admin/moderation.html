@@ -6,7 +6,7 @@
     <tr>
         <th>Username</th>
         <th>Movie</th>
-        <th>Comment text</th>
+        <th width="50%">Comment text</th>
         <th>Date posted</th>
         <th></th>
     </tr>
@@ -17,8 +17,11 @@
         <td>{{row.contents}}</td>
         <td>{{row.created}}</td>
         <td>
-            <form method="post" action="{{ url_for('moderation.approve', comment_id=row.id) }}">
-                <input type="submit" value="Approve" />
+            <form style="display: inline" method="post" action="{{ url_for('moderation.approve', comment_id=row.id) }}">
+                <input type="submit" class="btn btn-success" value="Approve" />
+            </form>
+            <form style="display: inline" method="post" action="{{ url_for('moderation.reject', comment_id=row.id) }}">
+                <input type="submit" class="btn btn-danger" value="Reject" />
             </form>
         </td>
     </tr>
