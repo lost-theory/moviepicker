@@ -1,5 +1,5 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
-  <p><a href="{{url_for('index') }}">Back</a> to moviepicker home.</p>
+  <p>Welcome <strong>{{g.user.username}}</strong>. Use the links at the top of the page for admin features. <a href="{{url_for('index') }}">Back</a> to moviepicker home.</p>
 {% endblock %}
