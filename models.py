@@ -33,36 +33,15 @@ class User(db.Model):
 
     movies = db.relationship('Movie', secondary=movielist, backref=db.backref('users', lazy='dynamic'))
 
-    def __init__(self, username, email, password):
-        self.username = username
-        self.email = email
-        self.password_hash = pbkdf2_sha512.encrypt(password)
-
     def __repr__(self):
         return '<User id={!r} username={!r} email={!r}>'.format(self.id, self.username, self.email)
 
     @classmethod
-    def create(cls, username, email, password, confirm):
-        if not username.isalnum():
-            raise RuntimeError("Invalid username. Only letters and numbers are allowed.")
-        if "@" not in email or "." not in email:
-            raise RuntimeError("Invalid email address.")
-        if password != confirm:
-            raise RuntimeError("Passwords do not match.")
-        if not password or len(password) < MIN_PASSWORD_LENGTH:
-            raise RuntimeError("Passwords must be at least {} characters long.".format(MIN_PASSWORD_LENGTH))
-
-        u = cls(username, email, password)
+    def create(cls, username=None, email=None, password=None, **others):
+        password_hash = pbkdf2_sha512.encrypt(password)
+        u = cls(username=username, email=email, password_hash=password_hash)
         db.session.add(u)
-        try:
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError, exc:
-            if "username" in exc.message:
-                raise RuntimeError("That username is already in use.")
-            elif "email" in exc.message:
-                raise RuntimeError("That email address is already in use.")
-            else:
-                raise
+        db.session.commit()
         return u
 
     @classmethod

@@ -3,23 +3,24 @@
 <div class="col-lg-6">
     <h1>Register</h1>
     <p>Don't have an account yet? Register here.</p>
-    {{ error_box(reg_error) }}
+    {{ error_box(rform) }}
     <form method="post" action="{{ url_for('login') }}" class="bs_component">
+        {{ rform.csrf_token }}
         <div class="form-group">
-            <label for="r_username" class="control-label">Username:</label>
-            <input id="r_username" type="text" name="r_username" class="form-control" value="{{request.form.r_username}}" />
+            {{ rform.username.label(class_="control-label") }}
+            {{ rform.username(class_="form-control") }}
         </div>
         <div class="form-group">
-            <label for="r_email" class="control-label">Email address:</label>
-            <input id="r_email" type="text" name="r_email" class="form-control" value="{{request.form.r_email}}" />
+            {{ rform.email.label(class_="control-label") }}
+            {{ rform.email(class_="form-control") }}
         </div>
         <div class="form-group">
-            <label for="r_password" class="control-label">Password:</label>
-            <input id="r_password" type="password" name="r_password" class="form-control" value="" />
+            {{ rform.password.label(class_="control-label") }}
+            {{ rform.password(class_="form-control") }}
         </div>
         <div class="form-group">
-            <label for="r_confirm" class="control-label">Confirm password:</label>
-            <input id="r_confirm" type="password" name="r_confirm" class="form-control" value="" />
+            {{ rform.confirm.label(class_="control-label") }}
+            {{ rform.confirm(class_="form-control") }}
         </div>
         <div class="form-group">
             <button type="submit" class="btn btn-primary" name="submit" value="reg">Create account</button>
@@ -29,15 +30,16 @@
 <div class="col-lg-6">
     <h1>Log in</h1>
     <p>Already have an account? Sign in here.</p>
-    {{ error_box(login_error) }}
+    {{ error_box(lform) }}
     <form method="post" action="{{ url_for('login') }}" class="bs_component">
+        {{ lform.csrf_token }}
         <div class="form-group">
-            <label for="l_username_or_email" class="control-label">Username or email address:</label>
-            <input id="l_username_or_email" type="text" name="l_username_or_email" class="form-control" value="{{request.form.l_username_or_email}}" />
+            {{ lform.username_or_email.label(class_="control-label") }}
+            {{ lform.username_or_email(class_="form-control") }}
         </div>
         <div class="form-group">
-            <label for="l_password" class="control-label">Password:</label>
-            <input id="l_password" type="password" name="l_password" class="form-control" value="" />
+            {{ lform.password.label(class_="control-label") }}
+            {{ lform.password(class_="form-control") }}
         </div>
         <div class="form-group">
             <button type="submit" class="btn btn-primary" name="submit" value="login">Log in</button>

@@ -16,11 +16,15 @@
 </div>
 {% endmacro %}
 
-{% macro error_box(message) %}
-{% if message %}
+{% macro error_box(form) %}
+{% if form.errors %}
     <div class="alert alert-danger">
-        <p><strong>Error:</strong> {{message}}</p>
-        <p>Please fix the error and try submitting again.</p>
+        <p>There {{ "was an error" if form.errors|length == 1 else "were errors" }} on the form:</p>
+        <ul>
+            {% for error in form.errors.values() %}
+            <li>{% for msg in error %}{{ msg }} {% endfor %}</li>
+            {% endfor %}
+        </ul>
     </div>
 {% endif %}
 {% endmacro %}

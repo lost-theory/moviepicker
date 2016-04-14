@@ -22,6 +22,7 @@ from movies import (
 )
 from models import db, User, Category, Movie, Comment
 from api import api
+from forms import RegistrationForm, LoginForm
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DBURI', 'sqlite:///movies.db')
@@ -176,29 +177,27 @@ def show_movie(title):
     moviedata = MovieData(fetch_omdb_info(title))
     return render_template("movie.html", moviedata=moviedata, comments=comments)
 
-def register_or_login(form):
-    submit = form['submit']
-    if submit == 'reg':
-        user = User.create(form['r_username'], form['r_email'], form['r_password'], form['r_confirm'])
-    elif submit == 'login':
-        user = User.validate(form['l_username_or_email'], form['l_password'])
-    else:
-        raise ValueError("Got unexpected submit value {!r}".format(submit))
-    return user
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if g.user:
         return redirect(url_for('index'))
+
+    rform = RegistrationForm()
+    lform = LoginForm()
     if request.method == 'GET':
-        return render_template('login.html')
-    try:
-        user = register_or_login(request.form)
-    except RuntimeError, exc:
-        error_type = '{}_error'.format(request.form['submit'])
-        return render_template('login.html', **{error_type: exc.message})
-    session['user'] = user.id
-    return redirect(url_for('index'))
+        return render_template('login.html', rform=rform, lform=lform)
+
+    user = None
+    if request.form['submit'] == 'reg' and rform.validate_on_submit():
+        user = User.create(**rform.data)
+    elif request.form['submit'] == 'login' and lform.validate_on_submit():
+        user = lform.validated_user
+
+    if user:
+        session['user'] = user.id
+        return redirect(url_for('index'))
+
+    return render_template('login.html', rform=rform, lform=lform)
 
 @app.route('/logout')
 def logout():
