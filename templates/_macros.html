@@ -17,7 +17,7 @@
 {% endmacro %}
 
 {% macro error_box(form) %}
-{% if form.errors %}
+{% if form and form.errors %}
     <div class="alert alert-danger">
         <p>There {{ "was an error" if form.errors|length == 1 else "were errors" }} on the form:</p>
         <ul>

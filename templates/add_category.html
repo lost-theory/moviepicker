@@ -2,7 +2,9 @@
 {% block content %}
 <div class="col-lg-4">
     <h1>Add a category</h1>
-    {{ error_box(error) }}
+    {% if error %}
+    <div class="alert alert-danger"><p>Error: {{error}}</p></div>
+    {% endif %}
     <form method="post" action="{{ url_for('add_category') }}" class="bs_component">
         <div class="form-group">
             <label for="category" class="control-label">Category name:</label>
