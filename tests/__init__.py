@@ -22,6 +22,7 @@ from app import User, Category, Movie, Comment
 from movies import fetch_wikipedia_titles
 
 app.config['TESTING'] = True  # to get full tracebacks in our tests
+app.config['WTF_CSRF_ENABLED'] = False  # turn off CSRF protection for tests
 app.secret_key = 'testing'  # need this to get sessions to work
 
 class AppTestCase(unittest.TestCase):
@@ -111,7 +112,7 @@ class ViewTests(AppTestCase):
         assert "Toy Story" in res.data
 
     def test_reg(self):
-        res = self.client.post('/login', data=dict(r_username="test2", r_email="test2@wow.com", r_password="asdfasdf", r_confirm="asdfasdf", submit="reg"))
+        res = self.client.post('/login', data=dict(username="test2", email="test2@wow.com", password="asdfasdf", confirm="asdfasdf", submit="reg"))
         assert res.status == '302 FOUND'
         res2 = self.client.get(res.headers['Location'])
         assert res2.status == '200 OK'
