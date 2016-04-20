@@ -154,7 +154,7 @@ def show_category(category, message=''):
 def add_category():
     if request.method == 'GET':
         return render_template("add_category.html")
-    name = request.form.get('category').replace(' ', '_')
+    name = request.form.get('category', '').replace(' ', '_')
     try:
         is_valid_category(name)
         category = Category.create(name)
