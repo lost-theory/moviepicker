@@ -89,7 +89,7 @@ class ViewTests(AppTestCase):
         assert '/login' in res.headers['Location']
 
     @with_logged_in_user
-    def test_add_cat_logged_in(self):
+    def test_add_cat_logged_in_form(self):
         res = self.client.get('/categories')
         assert res.status == '200 OK'
         assert "<form" in res.data
@@ -103,7 +103,7 @@ class ViewTests(AppTestCase):
         assert '<strong>Error:</strong> Category must not be blank.' in res.data
 
     @with_logged_in_user
-    def test_add_cat_empty_form_error(self):
+    def test_add_cat_success(self):
         res = self.client.post('/categories', data=dict(category='Pixar_animated_films'))
         assert res.status == '200 OK'
         assert "Pixar animated films" in res.data
