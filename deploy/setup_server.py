@@ -1,5 +1,24 @@
 '''
 Sets up an Ubuntu 15 machine to run the moviepicker app.
+
+Usage (from your local machine):
+
+$ python deploy/setup_server.py push stevek@44.55.1.123
+Running: ['scp', '/home/Steven/.moviepicker-secret', 'stevek@44.55.1.123:~/'] with {}
+.moviepicker-secret                                             100%   89     0.1KB/s   00:00
+Running: ['scp', 'deploy/setup_server.py', 'stevek@44.55.1.123:/tmp/'] with {}
+setup_server.py                                                 100% 4283     4.2KB/s   00:00
+Running: ['ssh', '-A', 'stevek@44.55.1.123', 'python -u /tmp/setup_server.py main'] with {}
+Running: ['git', 'fetch'] with {'cwd': '/home/stevek/moviepicker'}
+From github.com:lost-theory/moviepicker
+ + 803d0d9...4343a50 deploy     -> origin/deploy  (forced update)
+ * [new branch]      more_tests -> origin/more_tests
+ + 3be733c...0cf48e0 wtforms    -> origin/wtforms  (forced update)
+Running: ['git', 'reset', '--hard', 'origin/deploy'] with {'cwd': '/home/stevek/moviepicker'}
+HEAD is now at 4343a50 add a route for creating the database on Heroku
+Running: ['/home/stevek/mp_env/bin/pip', 'install', '-r', '/home/stevek/moviepicker/requirements.txt'] with {}
+Requirement already satisfied (use --upgrade to upgrade): Flask<0.11 in ./mp_env/lib/python2.7/site-packages (from -r /home/stevek/moviepicker/requirements.txt (line 1))
+...
 '''
 
 from __future__ import print_function
@@ -80,7 +99,6 @@ def main():
     if not os.path.isdir(venv_path):
         run(["virtualenv", "-p", "/usr/bin/python2.7", venv_path])
     run([pip_path, "install", "-r", os.path.join(repo_path, "requirements.txt")])
-    run([pip_path, "install", "gunicorn==19.4.5"])
 
     # nginx configs
     ips = check_output(["hostname", "--all-ip-addresses"]).strip()
