@@ -39,10 +39,10 @@ def with_logged_in_user(f):
     def wrapper(self, *a, **kw):
         username = "user{}".format(random.randint(10000000, 99999999))
         self.client.post('/login', data=dict(
-            r_username=username,
-            r_email="{}@wow.test".format(username),
-            r_password="asdfasdf",
-            r_confirm="asdfasdf",
+            username=username,
+            email="{}@wow.test".format(username),
+            password="asdfasdf",
+            confirm="asdfasdf",
             submit="reg")
         )
         res = f(self, *a, **kw)
@@ -101,7 +101,7 @@ class ViewTests(AppTestCase):
         res = self.client.post('/categories')
         assert res.status == '200 OK'
         assert '<div class="alert alert-danger">' in res.data
-        assert '<strong>Error:</strong> Category must not be blank.' in res.data
+        assert 'Category must not be blank.' in res.data
 
     @with_logged_in_user
     def test_add_cat_success(self):
@@ -129,7 +129,7 @@ class ViewTests(AppTestCase):
 class ModelTests(AppTestCase):
     @with_app_context
     def test_user_create(self):
-        u = User.create("test", "test@wow.com", "asdfasdf", "asdfasdf")
+        u = User.create("test", "test@wow.com", "asdfasdf")
         db.session.add(u)
         db.session.commit()
         users = User.query.filter_by(email="test@wow.com").all()
@@ -157,7 +157,7 @@ class ModelTests(AppTestCase):
     @with_app_context
     def test_comment_create(self):
         m = Movie.get_or_create("Monty Python and the Holy Test")
-        u = User.create("commenter", "comments@wow.com", "asdfasdf", "asdfasdf")
+        u = User.create("commenter", "comments@wow.com", "asdfasdf")
         db.session.add(m)
         db.session.add(u)
         db.session.commit()
