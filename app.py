@@ -235,6 +235,13 @@ def rehost_image():
     image = urllib.urlopen(request.args['url'])
     return (image.read(), '200 OK', {'Content-type': 'image/jpeg'})
 
+@app.route('/db_create_all')
+def db_create_all():
+    '''Run this to create the database on Heroku etc.'''
+    db.create_all()
+    return "OK"
+
+
 #####
 
 if __name__ == '__main__':
