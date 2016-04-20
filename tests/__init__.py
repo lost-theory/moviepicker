@@ -49,6 +49,17 @@ def with_logged_in_user(f):
         return res
     return wrapper
 
+def with_app_context(f):
+    '''
+    Run the wrapped test in a `with app.app_context()` block.
+    '''
+    @wraps(f)
+    def wrapper(*a, **kw):
+        with app.app_context():
+            res = f(*a, **kw)
+        return res
+    return wrapper
+
 ## non-app tests ##############################################################
 
 class MoviePickerTests(unittest.TestCase):
@@ -115,42 +126,42 @@ class ViewTests(AppTestCase):
         assert 'result' in data
 
 class ModelTests(AppTestCase):
+    @with_app_context
     def test_user_create(self):
-        with app.app_context():
-            u = User.create("test", "test@wow.com", "asdfasdf", "asdfasdf")
-            db.session.add(u)
-            db.session.commit()
-            users = User.query.filter_by(email="test@wow.com").all()
-            assert len(users) == 1
-            assert users[0].username == "test"
+        u = User.create("test", "test@wow.com", "asdfasdf", "asdfasdf")
+        db.session.add(u)
+        db.session.commit()
+        users = User.query.filter_by(email="test@wow.com").all()
+        assert len(users) == 1
+        assert users[0].username == "test"
 
+    @with_app_context
     def test_category_create(self):
-        with app.app_context():
-            c = Category.create("Cheezy movies")
-            db.session.add(c)
-            db.session.commit()
-            cs = Category.query.filter_by(name="Cheezy movies").all()
-            assert len(cs) == 1
-            assert cs[0].name == "Cheezy movies"
+        c = Category.create("Cheezy movies")
+        db.session.add(c)
+        db.session.commit()
+        cs = Category.query.filter_by(name="Cheezy movies").all()
+        assert len(cs) == 1
+        assert cs[0].name == "Cheezy movies"
 
+    @with_app_context
     def test_movie_create(self):
-        with app.app_context():
-            m = Movie.get_or_create("Monty Python and the Holy Test")
-            db.session.add(m)
-            db.session.commit()
-            ms = Movie.query.filter_by(title="Monty Python and the Holy Test").all()
-            assert len(ms) == 1
-            assert ms[0].title == "Monty Python and the Holy Test"
+        m = Movie.get_or_create("Monty Python and the Holy Test")
+        db.session.add(m)
+        db.session.commit()
+        ms = Movie.query.filter_by(title="Monty Python and the Holy Test").all()
+        assert len(ms) == 1
+        assert ms[0].title == "Monty Python and the Holy Test"
 
+    @with_app_context
     def test_comment_create(self):
-        with app.app_context():
-            m = Movie.get_or_create("Monty Python and the Holy Test")
-            u = User.create("commenter", "comments@wow.com", "asdfasdf", "asdfasdf")
-            db.session.add(m)
-            db.session.add(u)
-            db.session.commit()
-            c = Comment(user_id=u.id, contents="4/5. Lots of good testing moments.")
-            m.add_comment(c)
-            comments = Comment.query.filter_by(user_id=u.id, movie_id=m.id).all()
-            assert len(comments) == 1
-            assert "good testing moments" in comments[0].contents
+        m = Movie.get_or_create("Monty Python and the Holy Test")
+        u = User.create("commenter", "comments@wow.com", "asdfasdf", "asdfasdf")
+        db.session.add(m)
+        db.session.add(u)
+        db.session.commit()
+        c = Comment(user_id=u.id, contents="4/5. Lots of good testing moments.")
+        m.add_comment(c)
+        comments = Comment.query.filter_by(user_id=u.id, movie_id=m.id).all()
+        assert len(comments) == 1
+        assert "good testing moments" in comments[0].contents
