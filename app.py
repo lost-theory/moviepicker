@@ -2,11 +2,12 @@
 Movie picker flask application.
 '''
 
+import logging
 import os
 import random
 import urllib
-from functools import wraps
 from datetime import datetime, timedelta
+from functools import wraps
 
 from flask import (
     Flask, g, request, url_for, session,
@@ -26,6 +27,18 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DBURI', 'sqlite:///movies.db')
 app.config['SQLALCHEMY_ECHO'] = bool(os.environ.get('ECHO'))
 db.init_app(app)
+
+# http://flask.pocoo.org/docs/0.10/errorhandling/
+logging.basicConfig(level=logging.INFO)
+if os.environ.get('USE_SYSLOG'):
+    import logging.handlers
+    app.logger.addHandler(logging.handlers.SysLogHandler(address="/dev/log"))
+
+if os.environ.get('SECRET_KEY_PATH'):
+    with open(os.environ['SECRET_KEY_PATH']) as f:
+        app.secret_key = f.read().strip()
+if os.environ.get('SECRET_KEY'):
+    app.secret_key = os.environ['SECRET_KEY']
 
 ## flask-admin code ###########################################################
 
@@ -232,5 +245,5 @@ if __name__ == '__main__':
     #in production you would load this from a config file, environment variable, etc. outside of version control
     #uuid.getnode() returns a (hopefully) unique integer tied to your computer's hardware
     import uuid
-    app.secret_key = str(uuid.getnode())
+    app.secret_key = app.secret_key or str(uuid.getnode())
     app.run(host='0.0.0.0', debug=True)
