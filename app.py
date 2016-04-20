@@ -30,9 +30,6 @@ db.init_app(app)
 
 # http://flask.pocoo.org/docs/0.10/errorhandling/
 logging.basicConfig(level=logging.INFO)
-if os.environ.get('USE_SYSLOG'):
-    import logging.handlers
-    app.logger.addHandler(logging.handlers.SysLogHandler(address="/dev/log"))
 
 if os.environ.get('SECRET_KEY_PATH'):
     with open(os.environ['SECRET_KEY_PATH']) as f:
