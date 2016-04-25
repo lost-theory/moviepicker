@@ -89,6 +89,13 @@ class ViewTests(AppTestCase):
         assert res.status == '302 FOUND'
         assert '/login' in res.headers['Location']
 
+    @patch('app.fetch_omdb_info')
+    def test_movie_page(self, fetch):
+        res = self.client.get('/movie/Inside%20Out')
+        assert len(fetch.mock_calls) > 1
+        assert 'Inside Out' in str(fetch.mock_calls[0])
+        assert 'Genre' in res.data and 'View this movie on IMDb' in res.data
+
     @with_logged_in_user
     def test_add_cat_logged_in_form(self):
         res = self.client.get('/categories')
