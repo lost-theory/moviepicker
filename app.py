@@ -249,4 +249,5 @@ if __name__ == '__main__':
     #uuid.getnode() returns a (hopefully) unique integer tied to your computer's hardware
     import uuid
     app.secret_key = app.secret_key or str(uuid.getnode())
+    app.config['TRAP_BAD_REQUEST_ERRORS'] = True
     app.run(host='0.0.0.0', debug=True)
